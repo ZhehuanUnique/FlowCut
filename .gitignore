@@ -1,0 +1,49 @@
+# Local environments and caches
+__pycache__/
+*.py[cod]
+.pytest_cache/
+.venv/
+venv/
+.DS_Store
+Thumbs.db
+
+# Credentials and local configuration
+.env
+.env.*
+!.env.example
+*.pem
+*.key
+credentials*.json
+cookies*.txt
+
+# Private media, derived transcripts, and proprietary models
+*.mp4
+*.mov
+*.mkv
+*.avi
+*.webm
+*.wav
+*.mp3
+*.m4a
+*.aac
+*.flac
+*.jpg
+*.jpeg
+*.png
+*.srt
+*.ass
+*.vtt
+*.onnx
+*.pt
+*.pth
+*.safetensors
+asr-model-token.txt
+
+# Per-project artifacts; keep examples in documentation
+work/
+outputs/
+recordings/
+transcripts/
+models/
+runtime/
+*.log
