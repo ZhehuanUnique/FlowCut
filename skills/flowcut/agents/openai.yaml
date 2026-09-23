@@ -1,4 +1,4 @@
 interface:
-  display_name: "FlowCut · 口播精剪"
-  short_description: "清理中文口播语气词与残音，自然处理气口、停顿和跳切，保护原意及字幕"
-  default_prompt: "使用 $flowcut 精剪这段口播，清理语气词、自然处理气口和跳切，保留原片并导出成片。"
+  display_name: "FlowCut · 口播Skill"
+  short_description: "精剪中文口播重录、口头语和停顿，保护原意、字音与字幕"
+  default_prompt: "使用 $flowcut 精剪这段中文口播，处理重录、冗余口头语和无意义长停顿，保护字头字尾、原意与字幕，并核对实际成片。"

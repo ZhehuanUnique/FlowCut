@@ -46,4 +46,5 @@ recordings/
 transcripts/
 models/
 runtime/
+*pause-candidates*.json
 *.log

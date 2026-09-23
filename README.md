@@ -2,14 +2,16 @@
 
 Natural talking-head editing, guided by meaning—not a word blacklist.
 
-A reusable AI skill for polishing Chinese talking-head videos: remove redundant filler words, refine pauses and breaths, and smooth jump cuts while preserving meaning, voice, and subtitles.
+A reusable AI skill for polishing Chinese talking-head videos: choose complete retakes, remove redundant filler words, shorten no-information recording waits, and smooth jump cuts while preserving meaning, voice, and subtitles.
 
 [中文说明](README.zh-CN.md) · [Skill instructions](skills/flowcut/SKILL.md)
 
 ## What it does
 
 - Reviews filler words such as **就是、然后、啊、呃、我觉得** in context. Meaningful transitions and subjective qualifiers stay.
-- Refines pauses and breathing without clipping consonants, word endings, or intentional emphasis.
+- Resolves false starts and repeated takes by complete semantic units instead of matching repeated words.
+- Reviews the whole retained timeline for no-information waits, including leading/trailing space and pauses away from retake points.
+- Refines pauses and breathing without clipping consonants, word endings, or intentional emphasis. Playback speed remains unchanged unless the current request explicitly asks for a separate speed change.
 - Improves cut decisions using neighboring speech, movement, framing, and subtitle state. Authorized B-roll may cover difficult cuts.
 - Preserves the original source, produces a separate edited version, and checks the actual export.
 
@@ -19,17 +21,19 @@ FlowCut is an **agent workflow with optional local helpers**, not a standalone e
 
 The installable folder is [`skills/flowcut`](skills/flowcut). Keep `SKILL.md`, `references/`, and `scripts/` together.
 
+**Naming:** FlowCut is the public project and package name. In a talking-head editing context, “口播Skill” and `koubo-skill` are natural-language aliases for this workflow. This repository's canonical skill ID remains `flowcut`, so explicit invocation after installing this package is `$flowcut`. FlowCut Studio requests for intro/outro modules are outside this skill.
+
 1. Download or clone this repository.
 2. Install the `flowcut` folder using your agent's supported skill-loading mechanism.
 3. Give the agent a source video and your editing preferences. Review its proposed cuts before export.
 
 Example request:
 
-> Use FlowCut to polish this Chinese talking-head video. Review redundant 就是、然后、啊、呃、我觉得 in context, refine breaths and pauses, and improve jump cuts. Preserve my meaning, voice, subtitles, and original file. Explain uncertain cuts and verify the exported result.
+> Use FlowCut to polish this Chinese talking-head video. Keep the final complete version of repeated takes, review redundant 就是、然后、啊、呃、我觉得 in context, and shorten no-information recording waits without clipping speech. Preserve my meaning, voice, subtitles, original speed, and original file. Explain uncertain cuts and verify the exported result.
 
 中文示例：
 
-> 用 FlowCut 精剪这段口播。逐项复核“就是、然后、啊、呃、我觉得”，保留有实际含义的表达，自然处理气口与跳切，不覆盖原片，导出后检查接点和字幕。
+> 用 FlowCut（口播Skill / koubo-skill）精剪这段口播。保留重复录制中最后一次完整表达，逐项复核口头语，并清理全片无信息空等；默认保持原速，保护字头字尾，不覆盖原片，导出后检查接点和字幕。
 
 ### Host compatibility
 
@@ -74,15 +78,26 @@ The second command is a **dry run**. Review the result, then add `--execute` to 
 
 It emits **candidates, not approved cuts**. Do not transfer its 50 ms calibration to another model. Without the matching model, use another authorized speech-analysis tool and independently review timing. See [local tools and limitations](skills/flowcut/references/local-tools.md).
 
+### Scan low-energy pause candidates
+
+[`scan_pauses.py`](skills/flowcut/scripts/scan_pauses.py) scans each channel of a PCM16 WAV without mixing down and reports long low-energy regions for review. It requires Python 3.10+ and NumPy, but no speech model. Thresholds and durations are starting points for the current recording—not automatic cut rules.
+
+```sh
+mkdir -p work
+python skills/flowcut/scripts/scan_pauses.py --audio review.wav --out work/pause-candidates.json --fps 30000/1001 --min-pause 1.2 --rms-dbfs -40 --peak-dbfs -40
+```
+
+The report deliberately contains no approved `cuts`. It records the resolved source path, so keep it in the ignored private `work/` directory and do not publish it. Check the neighboring words, breaths, semantics, image, and timeline mapping before creating a separate render plan. Re-scan the actual exported file, not only the pre-render analysis audio.
+
 ## Validation
 
-Run the standard-library tests from the repository root:
+Run the tests from the repository root:
 
 ```sh
 python -m unittest discover -s tests -v
 ```
 
-The synthetic-media integration test needs FFmpeg/FFprobe; use `FLOWCUT_FFMPEG` if FFmpeg is not on `PATH`. Tests cannot certify that a real speech edit sounds natural. Each exported user video still needs semantic, acoustic, visual, and synchronization checks.
+Pause-scanner tests run when NumPy is installed. The synthetic-media integration test needs FFmpeg/FFprobe; use `FLOWCUT_FFMPEG` if FFmpeg is not on `PATH`. Tests cannot certify that a real speech edit sounds natural. Each exported user video still needs semantic, acoustic, visual, and synchronization checks.
 
 ## Privacy and scope
 
